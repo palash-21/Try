@@ -29,6 +29,17 @@ def extract_features_audio(data):
 
 	return result
 
+def emotion_decoder(prediction):
+    list_pred = pred.tolist()
+    emotion_list = ['Angry','Disgust','Fear','Happy','Neutral','Sad','Surprise']
+    emotion_dict = dict(zip(emotion_list,list_pred[0]))
+    pred_emotion = ''
+    for emot,pred_val in emotion_dict.items():
+        max_pred = max(list_pred[0])
+        if pred_val==max_pred:
+            pred_emotion = emot
+    return pred_emotion
+
 modelfile = 'model/model_1.h5'    
 
 model = load_model(modelfile)
@@ -43,29 +54,19 @@ if uploaded_file is not None:
     
 
 
-st.audio(uploaded_file, format="audio/wav", start_time=0)
+    st.audio(uploaded_file, format="audio/wav", start_time=0)
 
-data, sample_rate = librosa.load(uploaded_file, duration=2.5, offset=0.6)
-#data, sample_rate = librosa.load(os.path.join("tempDir",uploaded_file.name), duration=2.5, offset=0.6)
-fea = np.array(extract_features_audio(data))
-fea = fea.reshape((-1,162))
-fea = pd.DataFrame(fea)
-fea.reset_index(inplace=True)
-fea = np.array(fea)
-fea = np.expand_dims(fea, axis=2)
+    data, sample_rate = librosa.load(uploaded_file, duration=2.5, offset=0.6)
+    #data, sample_rate = librosa.load(os.path.join("tempDir",uploaded_file.name), duration=2.5, offset=0.6)
+    fea = np.array(extract_features_audio(data))
+    fea = fea.reshape((-1,162))
+    fea = pd.DataFrame(fea)
+    fea.reset_index(inplace=True)
+    fea = np.array(fea)
+    fea = np.expand_dims(fea, axis=2)
 
-pred = model.predict(fea)		
-#prediction = np.array2string(model.predict(fea))
-def emotion_decoder(prediction):
-    list_pred = pred.tolist()
-    emotion_list = ['Angry','Disgust','Fear','Happy','Neutral','Sad','Surprise']
-    emotion_dict = dict(zip(emotion_list,list_pred[0]))
-    pred_emotion = ''
-    for emot,pred_val in emotion_dict.items():
-        max_pred = max(list_pred[0])
-        if pred_val==max_pred:
-            pred_emotion = emot
-    return pred_emotion
-emotion = emotion_decoder(pred)
-#st.write(prediction)
-st.write(f'The uploaded audio has the following emotion:"{emotion}"')
+    pred = model.predict(fea)		
+    #prediction = np.array2string(model.predict(fea))
+    emotion = emotion_decoder(pred)
+    #st.write(prediction)
+    st.write(f'The uploaded audio has the following emotion:"{emotion}"')
