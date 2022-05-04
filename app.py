@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import librosa
 from keras.models import load_model
+import os
 
 def extract_features_audio(data):
 	result = np.array([])
@@ -32,16 +33,20 @@ modelfile = 'model/model_1.h5'
 
 model = load_model(modelfile)
 
+
 st.title('Speech Emotion Recognition')
 
 uploaded_file = st.file_uploader("Upload Files",type=['wav','mp3'])
 if uploaded_file is not None:
     file_details = {"FileName":uploaded_file.name,"FileType":uploaded_file.type,"FileSize":uploaded_file.size}
     st.write(file_details)
+    
+
 
 st.audio(uploaded_file, format="audio/wav", start_time=0)
 
 data, sample_rate = librosa.load(uploaded_file, duration=2.5, offset=0.6)
+#data, sample_rate = librosa.load(os.path.join("tempDir",uploaded_file.name), duration=2.5, offset=0.6)
 fea = np.array(extract_features_audio(data))
 fea = fea.reshape((-1,162))
 fea = pd.DataFrame(fea)
@@ -55,8 +60,10 @@ def emotion_decoder(prediction):
     list_pred = pred.tolist()
     emotion_list = ['Angry','Disgust','Fear','Happy','Neutral','Sad','Surprise']
     emotion_dict = dict(zip(emotion_list,list_pred[0]))
+    pred_emotion = ''
     for emot,pred_val in emotion_dict.items():
-        if pred_val==1.0:
+        max_pred = max(list_pred[0])
+        if pred_val==max_pred:
             pred_emotion = emot
     return pred_emotion
 emotion = emotion_decoder(pred)
